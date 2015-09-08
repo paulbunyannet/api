@@ -1,0 +1,20 @@
+{
+  "name": "paulbunyannet/api",
+  "description": "Shortcut for making http api calls",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "naten",
+      "email": "naten@paulbunyan.net"
+    }
+  ],
+  "require": {
+    "php": ">=5.4.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Pbc\\Api\\": "src/"
+    }
+  },
+  "minimum-stability": "stable"
+}
