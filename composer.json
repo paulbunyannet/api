@@ -11,10 +11,19 @@
   "require": {
     "php": ">=5.4.0"
   },
+  "require-dev": {
+    "fzaninotto/faker": "^1.5",
+    "phpunit/phpunit": "^4.8"
+},
   "autoload": {
     "psr-4": {
       "Pbc\\Api\\": "src/"
     }
   },
-  "minimum-stability": "stable"
+  "minimum-stability": "stable",
+  "scripts": {
+    "test": [
+      "phpunit --verbose --coverage-text"
+    ]
+  }
 }
