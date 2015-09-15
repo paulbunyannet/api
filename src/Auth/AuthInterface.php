@@ -13,5 +13,5 @@ namespace Pbc\Api\Auth;
 
 interface AuthInterface
 {
-    public function generateHash(array $list = []);
+    public function generateHash(array &$list = []);
 }

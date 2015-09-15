@@ -15,9 +15,10 @@ namespace Pbc\Api\Auth;
 
 class AuthBootstrap
 {
-    const IDENTITY = 'ident';
-    const PRIMARYKEY = 'pkey';
-    const TIMESTAMP = 'tps';
+    const IDENTITY   = 'ident';
+    const PRIVATEKEY = 'pkey';
+    const TIMESTAMP  = 'tps';
+    const PAYLOAD    = 'payload';
 
     protected $identity;
     protected $privateKey;

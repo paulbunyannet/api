@@ -44,11 +44,11 @@ class Receive extends AuthBootstrap implements AuthInterface
         $timestamp = array_key_exists(AuthBootstrap::TIMESTAMP, $list) ? $list[AuthBootstrap::TIMESTAMP] : gmdate('U');
         $timeStampRange = $this->getTimestampRange($timestamp);
         foreach($timeStampRange as $stamp) {
-            $newList = [];
+            $newList = [AuthBootstrap::PRIVATEKEY => $this->getPrivateKey()];
             $newList = array_merge($list, $newList);
             $newList[AuthBootstrap::TIMESTAMP] = $stamp;
-            $hash = $this->generateHash($newList);
-            if($hash === $this->getRemoteHash()) {
+            $this->generateHash($newList);
+            if($newList[AuthBootstrap::PAYLOAD] === $this->getRemoteHash()) {
                 return true;
             }
         }
@@ -71,9 +71,13 @@ class Receive extends AuthBootstrap implements AuthInterface
      * @param array $list
      * @return string
      */
-    public function generateHash(array $list = [])
+    public function generateHash(array &$list = [])
     {
-        return $this->hash($list);
+        $newList = array_merge($list, []);
+        // make sure payload key is not in the list prior to generating hash
+        unset($newList[AuthBootstrap::PAYLOAD]);
+        $list[AuthBootstrap::PAYLOAD] = $this->hash($newList);
+        return $list[AuthBootstrap::PAYLOAD];
     }
 
     /**

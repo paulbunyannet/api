@@ -22,6 +22,10 @@ class ApiAuthTest extends \PHPUnit_Framework_TestCase
 
     protected $faker;
 
+    protected $identity = 'user-identity';
+    protected $privateKey = 'private-key';
+    protected $list = [];
+
     public function __construct()
     {
         parent::__construct();
@@ -30,42 +34,71 @@ class ApiAuthTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    protected function setUp()
+    {
+        $this->identity = $this->faker->userName;
+        $this->privateKey = $this->faker->md5;
+        $this->list = ['some-key' => $this->faker->sentence()];
+
+    }
+
+    protected function tearDown()
+    {
+        $this->identity = '';
+        $this->privateKey = '';
+        $this->list = [];
+    }
+
     public function testSend()
     {
-        $identity = $this->faker->userName;
-        $privateKey = $this->faker->md5;
-        $list = ['some-key' => $this->faker->sentence()];
-        $sender = new Auth\Send($identity, $privateKey);
-        $hash = $sender->generateHash($list);
+        $sender = new Auth\Send($this->identity, $this->privateKey);
+        $hash = $sender->generateHash($this->list);
 
         // verify that the hash is not empty and returns a string
         $this->assertNotEmpty($hash);
         $this->assertTrue(is_string($hash));
     }
 
+    public function testPrepareRequestFields()
+    {
+        $sender = new Auth\Send($this->identity, $this->privateKey);
+        $sender->prepareRequestFields($this->list);
+        $this->assertArrayHasKey(AuthBootstrap::IDENTITY, $this->list);
+        $this->assertArrayHasKey(AuthBootstrap::TIMESTAMP, $this->list);
+        $this->assertArrayNotHasKey(AuthBootstrap::PAYLOAD, $this->list);
+        $this->assertArrayNotHasKey(AuthBootstrap::PRIVATEKEY, $this->list);
+    }
+
+    public function testSendGenerateHash()
+    {
+        $sender = new Auth\Send($this->identity, $this->privateKey);
+        $sender->generateHash($this->list);
+        $this->assertArrayHasKey(AuthBootstrap::PAYLOAD, $this->list);
+        $this->assertArrayHasKey(AuthBootstrap::IDENTITY, $this->list);
+        $this->assertArrayHasKey(AuthBootstrap::TIMESTAMP, $this->list);
+        $this->assertArrayNotHasKey(AuthBootstrap::PRIVATEKEY, $this->list);
+    }
 
     public function testReceive()
     {
-        $identity = $this->faker->userName;
-        $privateKey = $this->faker->md5;
-        $list = ['some-key' => $this->faker->sentence()];
-        $sender = new Auth\Send($identity, $privateKey);
-        $hash = $sender->generateHash($list);
+        $sender = new Auth\Send($this->identity, $this->privateKey);
+        $hash = $sender->generateHash($this->list);
 
-        // verify check returns true
-        $receiver = new Auth\Receive($hash, $privateKey);
-        $this->assertTrue($receiver->verifyHash(array_merge($list, [AuthBootstrap::IDENTITY => $identity, AuthBootstrap::PRIMARYKEY => $privateKey])));
+        // verify check returns true, list will
+        // now represent a list of request variables
+        $receiver = new Auth\Receive($hash, $this->privateKey);
+        $this->assertTrue($receiver->verifyHash($this->list));
 
-        // verify if any of the params are submitted wrong then it will return false
-        $receiver = new Auth\Receive($hash.'x', $privateKey);
-        $this->assertFalse($receiver->verifyHash(array_merge($list, [AuthBootstrap::IDENTITY => $identity, AuthBootstrap::PRIMARYKEY => $privateKey])));
+        // verify check returns false if bad payload
+        $receiver = new Auth\Receive($hash.'x', $this->privateKey);
+        $this->assertFalse($receiver->verifyHash($this->list));
 
-        $receiver = new Auth\Receive($hash, $privateKey);
-        $this->assertFalse($receiver->verifyHash(array_merge($list, [AuthBootstrap::IDENTITY => $identity.'x', AuthBootstrap::PRIMARYKEY => $privateKey])));
+        // verify check returns false if bad private key
+        $receiver = new Auth\Receive($hash, $this->privateKey . 'x');
+        $this->assertFalse($receiver->verifyHash($this->list));
 
-        $receiver = new Auth\Receive($hash, $privateKey);
-        $this->assertFalse($receiver->verifyHash(array_merge($list, [AuthBootstrap::IDENTITY => $identity, AuthBootstrap::PRIMARYKEY => $privateKey.'x'])));
-
+        // verify check returns false if list has data in it that should not be there
+        $receiver = new Auth\Receive($hash, $this->privateKey);
+        $this->assertFalse($receiver->verifyHash(array_merge($this->list, ['another-thing' => '12345'])));
     }
-
 }
