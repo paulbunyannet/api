@@ -24,7 +24,7 @@ class Post extends Get implements ApiInterface
         $postValues = $this->prepPostParameters($params);
 
         $curlHandler = curl_init();
-        curl_setopt($curlHandler, CURLOPT_URL, $this->prepHttpPath($params));
+        curl_setopt($curlHandler, CURLOPT_URL, $this->prepHttpPath());
         curl_setopt($curlHandler, CURLOPT_POST, count($params) > 0 ? true : false);
         curl_setopt($curlHandler, CURLOPT_POSTFIELDS, $postValues);
         curl_setopt($curlHandler, CURLOPT_RETURNTRANSFER, true);

@@ -225,12 +225,13 @@ class Get implements ApiInterface
      */
     private function prepUrlParams($params)
     {
-        return (parse_url($this->getApiPath(), PHP_URL_QUERY) ? '&' : '?') . http_build_query($params);
+        return (parse_url($this->getApiPath(), PHP_URL_QUERY) ? '&' : '?') . $this->prepPostParameters($params, true);
     }
 
     /**
      * Prep post parameters
      * @param $params
+     * @param bool $urlEncode
      * @return string
      */
     protected function prepPostParameters($params, $urlEncode = false)
@@ -238,7 +239,7 @@ class Get implements ApiInterface
         $postValues = null;
         if (count($params) > 0) {
             foreach ($params as $key => $value) {
-                $value = $urlEncode ?: urlencode($value);
+                $value = $urlEncode ? $value : urlencode($value);
                 $postValues .= $key . '=' . $value . '&';
             }
             $postValues = rtrim($postValues, '&');
