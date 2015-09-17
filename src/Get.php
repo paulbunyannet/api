@@ -228,4 +228,23 @@ class Get implements ApiInterface
         return (parse_url($this->getApiPath(), PHP_URL_QUERY) ? '&' : '?') . http_build_query($params);
     }
 
+    /**
+     * Prep post parameters
+     * @param $params
+     * @return string
+     */
+    protected function prepPostParameters($params, $urlEncode = false)
+    {
+        $postValues = null;
+        if (count($params) > 0) {
+            foreach ($params as $key => $value) {
+                $value = $urlEncode ?: url($value);
+                $postValues .= $key . '=' . $value . '&';
+            }
+            $postValues = rtrim($postValues, '&');
+            return $postValues;
+        }
+        return $postValues;
+    }
+
 }

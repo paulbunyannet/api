@@ -21,14 +21,7 @@ class Put extends Get implements ApiInterface
      */
     public function retrieve($params = [])
     {
-        $postValues = null;
-        if (count($params) > 0) {
-            foreach ($params as $key => $value) {
-                $postValues .= $key . '=' . $value . '&';
-            }
-            $postValues = rtrim($postValues, '&');
-        }
-
+        $postValues = $this->prepPostParameters($params);
         $curlHandler = curl_init();
         curl_setopt($curlHandler, CURLOPT_URL, $this->prepHttpPath($params));
         curl_setopt($curlHandler, CURLOPT_CUSTOMREQUEST, "PUT");

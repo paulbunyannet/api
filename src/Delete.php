@@ -21,10 +21,11 @@ class Delete extends Get implements ApiInterface
      */
     public function retrieve($params = [])
     {
-
+        $postValues = $this->prepPostParameters($params);
         $curlHandler = curl_init();
         curl_setopt($curlHandler, CURLOPT_URL, $this->prepHttpPath($params));
         curl_setopt($curlHandler, CURLOPT_CUSTOMREQUEST, "DELETE");
+        curl_setopt($curlHandler, CURLOPT_POSTFIELDS, $postValues);
         curl_setopt($curlHandler, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curlHandler, CURLOPT_HEADER, false);
         curl_setopt($curlHandler, CURLOPT_FOLLOWLOCATION, true);
