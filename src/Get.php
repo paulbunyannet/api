@@ -238,7 +238,7 @@ class Get implements ApiInterface
         $postValues = null;
         if (count($params) > 0) {
             foreach ($params as $key => $value) {
-                $value = $urlEncode ?: url($value);
+                $value = $urlEncode ?: urlencode($value);
                 $postValues .= $key . '=' . $value . '&';
             }
             $postValues = rtrim($postValues, '&');
