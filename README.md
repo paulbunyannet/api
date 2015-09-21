@@ -1,9 +1,20 @@
-#Api [![Build Status](https://travis-ci.org/paulbunyannet/api.svg?branch=master)](https://travis-ci.org/paulbunyannet/api)
-Shortcut for making http calls to json endpoint
+# paulbunyannet/api 
+
+[![Build Status](https://travis-ci.org/paulbunyannet/api.svg?branch=master)](https://travis-ci.org/paulbunyannet/api)
+[![Latest Version](https://img.shields.io/packagist/v/paulbunyannet/api.svg?style=flat-square)](https://packagist.org/packages/paulbunyannet/api)
+
+** =paulbunyannet/api** Shortcut for making http calls to json endpoint
+
+
+## Installation
+
+This project can be installed via [Composer]:
+
+``` bash
+$ composer require paulbunyannet/api:^1.0
+```
 
 ## Request Methods:
-
-Each request method can send option header as the second parameter
 
 ### Get
 
@@ -16,7 +27,7 @@ var_dump($retrieve); // { "some_response_key" => "some_response_value" }
 
 ```php
 $getArgs = ['something' => ,'something_else']; 
-$get = new Get('https://pathtoapi.com/get/?'.http_build_query($getArgs), ['auth-key','auth-value']);
+$get = new Get('https://pathtoapi.com/get/?'.http_build_query($getArgs));
 $retrieve = $get->retrieve();
 var_dump($retrieve); // { "some_response_key" => "some_response_value" }
 ```
@@ -47,6 +58,21 @@ $retrieve = $delete->retrieve();
 var_dump($retrieve); // { "success" => "true" }
 ```
 
+## Headers
+
+Header array can be passed into a new object:
+
+```php
+$getArgs = ['something' => ,'something_else']; 
+$get = new Get('https://pathtoapi.com/get/?'.http_build_query($getArgs));
+// headers to pass with request
+$get->setHeaders(['headerKey' => 'headerValue']);
+$retrieve = $get->retrieve();
+var_dump($retrieve); // { "some_response_key" => "some_response_value" }
+```
+
+The header "headerKey: headerValue" will then be passed on with the REST request
+
 ## Authentication
 
 Each request method can use payload authentication and then check that payload on the receiving end
@@ -56,14 +82,12 @@ Each request method can use payload authentication and then check that payload o
 $postArgs = ['something' => ,'something_else'];
 $identity = 'my-user-name'; // used for looking up private key on the receiving side
 $privateKey = "my-super-secret-key";
-$sender = new Auth\Send($identity, $privateKey);
-$sender->generateHash($postArgs);
-
 $post = new Post('https://pathtoapi.com/post');
+$post->setPayload([Auth\AuthBootstrap::IDENTITY => $identity, Auth\AuthBootstrap::PRIVATEKEY => $privateKey]);
 $retrieve = $post->retrieve($postArgs);
 
 // then on the receiving side:
-$lookUpPrivateKey = 'my-super-secret-key-found-on-receiver-side'; // this is where you would do a lookup for user's private key by the ident key that was sent
+$lookUpPrivateKey = 'my-super-secret-key'; // this is where you would do a lookup for user's private key by the ideney key that was sent with the request
 $receiver = new Auth\Receive($_POST['payload'], $lookUpPrivateKey);
 $verifyHash = receiver->verifyHash($_POST); // will return true if payload hash sent is correct
 ```

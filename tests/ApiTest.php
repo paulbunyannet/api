@@ -100,7 +100,7 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Run get request
+     * Run get request with payload included with posts
      */
     public function testGetWithAuthPayload()
     {
@@ -129,6 +129,35 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $this->assertObjectHasAttribute(Auth\AuthBootstrap::TIMESTAMP, $retrieve->args);
         $this->assertSame($retrieve->args->{Auth\AuthBootstrap::TIMESTAMP}, strval($posts[Auth\AuthBootstrap::TIMESTAMP]));
 
+    }   /**
+     * Run get request with payload included with posts
+     */
+    public function testGetWithAuthPayloadInjected()
+    {
+        $key = 'something';
+        $value = md5(time());
+        $posts = [$key => $value];
+        $identity = md5(time());
+        $secretKey = 'my-super-secret-key';
+
+        $get = new Get($this->apiEndPoint . 'get');
+        $get->setPayload([Auth\AuthBootstrap::IDENTITY => $identity, Auth\AuthBootstrap::PRIVATEKEY => $secretKey]);
+        $retrieve = $get->retrieve($posts);
+        $this->assertTrue(is_object($retrieve));
+        $this->assertObjectHasAttribute('args',$retrieve);
+
+        $this->assertObjectHasAttribute($key, $retrieve->args);
+        $this->assertSame($retrieve->args->{$key}, $value);
+
+        $this->assertObjectHasAttribute(Auth\AuthBootstrap::IDENTITY, $retrieve->args);
+        $this->assertSame($retrieve->args->{Auth\AuthBootstrap::IDENTITY}, $identity);
+
+        $this->assertObjectHasAttribute(Auth\AuthBootstrap::PAYLOAD, $retrieve->args);
+        $this->assertSame($retrieve->args->{Auth\AuthBootstrap::PAYLOAD}, $get->getPayload()[Auth\AuthBootstrap::PAYLOAD]);
+
+        $this->assertObjectHasAttribute(Auth\AuthBootstrap::TIMESTAMP, $retrieve->args);
+        $this->assertSame($retrieve->args->{Auth\AuthBootstrap::TIMESTAMP}, strval($get->getPayload()[Auth\AuthBootstrap::TIMESTAMP]));
+
     }
 
     /**
@@ -138,7 +167,8 @@ class ApiTest extends \PHPUnit_Framework_TestCase
     {
         $authKey = 'Apikey';
         $authValue = md5(time());
-        $get = new Get($this->apiEndPoint.'get', [$authKey, $authValue]);
+        $get = new Get($this->apiEndPoint.'get');
+        $get->setHeaders([$authKey => $authValue]);
         $retrieve = $get->retrieve();
 
         $this->assertTrue(is_object($retrieve));
@@ -173,7 +203,8 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $authValue = md5(time());
         $key = 'postkey';
         $value = md5(time());
-        $post = new Post($this->apiEndPoint.'post', [$authKey, $authValue]);
+        $post = new Post($this->apiEndPoint.'post');
+        $post->setHeaders([$authKey => $authValue]);
         $retrieve = $post->retrieve([$key => $value]);
 
         $this->assertTrue(is_object($retrieve));
@@ -218,6 +249,35 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $this->assertObjectHasAttribute(Auth\AuthBootstrap::TIMESTAMP, $retrieve->form);
         $this->assertSame($retrieve->form->{Auth\AuthBootstrap::TIMESTAMP}, strval($posts[Auth\AuthBootstrap::TIMESTAMP]));
 
+    }    /**
+     * Run Post request with payload
+     */
+    public function testPostWithAuthPayloadInjected()
+    {
+        $key = 'something';
+        $value = md5(time());
+        $posts = [$key => $value];
+        $identity = md5(time());
+        $secretKey = 'my-super-secret-key';
+        $post = new Post($this->apiEndPoint . 'post');
+        $post->setPayload([Auth\AuthBootstrap::IDENTITY => $identity, Auth\AuthBootstrap::PRIVATEKEY => $secretKey]);
+        $retrieve = $post->retrieve($posts);
+
+        $this->assertTrue(is_object($retrieve));
+        $this->assertObjectHasAttribute('form',$retrieve);
+
+        $this->assertObjectHasAttribute($key, $retrieve->form);
+        $this->assertSame($retrieve->form->{$key}, $value);
+
+        $this->assertObjectHasAttribute(Auth\AuthBootstrap::IDENTITY, $retrieve->form);
+        $this->assertSame($retrieve->form->{Auth\AuthBootstrap::IDENTITY}, $identity);
+
+        $this->assertObjectHasAttribute(Auth\AuthBootstrap::PAYLOAD, $retrieve->form);
+        $this->assertSame($retrieve->form->{Auth\AuthBootstrap::PAYLOAD}, $post->getPayload()[Auth\AuthBootstrap::PAYLOAD]);
+
+        $this->assertObjectHasAttribute(Auth\AuthBootstrap::TIMESTAMP, $retrieve->form);
+        $this->assertSame($retrieve->form->{Auth\AuthBootstrap::TIMESTAMP}, strval($post->getPayload()[Auth\AuthBootstrap::TIMESTAMP]));
+
     }
 
 
@@ -246,7 +306,8 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $authValue = md5(time());
         $key = 'putkey';
         $value = md5(time());
-        $put = new Put($this->apiEndPoint.'put', [$authKey, $authValue]);
+        $put = new Put($this->apiEndPoint.'put');
+        $put->setHeaders([$authKey => $authValue]);
         $retrieve = $put->retrieve([$key => $value]);
 
         $this->assertTrue(is_object($retrieve));
@@ -293,6 +354,36 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($retrieve->form->{Auth\AuthBootstrap::TIMESTAMP}, strval($posts[Auth\AuthBootstrap::TIMESTAMP]));
 
     }
+    /**
+     * Run Put request with payload
+     */
+    public function testPutWithAuthPayloadInjected()
+    {
+        $key = 'something';
+        $value = md5(time());
+        $posts = [$key => $value];
+        $identity = md5(time());
+        $secretKey = 'my-super-secret-key';
+        $put = new Put($this->apiEndPoint . 'put');
+        $put->setPayload([Auth\AuthBootstrap::IDENTITY => $identity, Auth\AuthBootstrap::PRIVATEKEY => $secretKey]);
+        $retrieve = $put->retrieve($posts);
+
+        $this->assertTrue(is_object($retrieve));
+        $this->assertObjectHasAttribute('form',$retrieve);
+
+        $this->assertObjectHasAttribute($key, $retrieve->form);
+        $this->assertSame($retrieve->form->{$key}, $value);
+
+        $this->assertObjectHasAttribute(Auth\AuthBootstrap::IDENTITY, $retrieve->form);
+        $this->assertSame($retrieve->form->{Auth\AuthBootstrap::IDENTITY}, $identity);
+
+        $this->assertObjectHasAttribute(Auth\AuthBootstrap::PAYLOAD, $retrieve->form);
+        $this->assertSame($retrieve->form->{Auth\AuthBootstrap::PAYLOAD}, $put->getPayload()[Auth\AuthBootstrap::PAYLOAD]);
+
+        $this->assertObjectHasAttribute(Auth\AuthBootstrap::TIMESTAMP, $retrieve->form);
+        $this->assertSame($retrieve->form->{Auth\AuthBootstrap::TIMESTAMP}, strval($put->getPayload()[Auth\AuthBootstrap::TIMESTAMP]));
+
+    }
 
     /**
      * Run delete request
@@ -319,7 +410,8 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $authValue = md5(time());
         $key = 'deletekey';
         $value = md5(time());
-        $delete = new Delete($this->apiEndPoint.'delete?'.$key.'='.$value, [$authKey, $authValue]);
+        $delete = new Delete($this->apiEndPoint.'delete?'.$key.'='.$value);
+        $delete->setHeaders([$authKey => $authValue]);
         $retrieve = $delete->retrieve();
 
         $this->assertTrue(is_object($retrieve));
@@ -347,8 +439,8 @@ class ApiTest extends \PHPUnit_Framework_TestCase
         $secretKey = 'my-super-secret-key';
         $sender = new Auth\Send($identity, $secretKey);
         $sender->generateHash($posts);
-        $post = new Delete($this->apiEndPoint . 'delete');
-        $retrieve = $post->retrieve($posts);
+        $delete = new Delete($this->apiEndPoint . 'delete');
+        $retrieve = $delete->retrieve($posts);
 
         $this->assertTrue(is_object($retrieve));
         $this->assertObjectHasAttribute('form',$retrieve);
@@ -364,6 +456,36 @@ class ApiTest extends \PHPUnit_Framework_TestCase
 
         $this->assertObjectHasAttribute(Auth\AuthBootstrap::TIMESTAMP, $retrieve->form);
         $this->assertSame($retrieve->form->{Auth\AuthBootstrap::TIMESTAMP}, strval($posts[Auth\AuthBootstrap::TIMESTAMP]));
+
+    }/**
+     * Run Delete request with payload
+     */
+    public function testDeleteWithAuthPayloadInjected()
+    {
+        $key = 'something';
+        $value = md5(time());
+        $posts = [$key => $value];
+        $identity = md5(time());
+        $secretKey = 'my-super-secret-key';
+
+        $delete = new Delete($this->apiEndPoint . 'delete');
+        $delete->setPayload([Auth\AuthBootstrap::IDENTITY => $identity, Auth\AuthBootstrap::PRIVATEKEY => $secretKey]);
+        $retrieve = $delete->retrieve($posts);
+
+        $this->assertTrue(is_object($retrieve));
+        $this->assertObjectHasAttribute('form',$retrieve);
+
+        $this->assertObjectHasAttribute($key, $retrieve->form);
+        $this->assertSame($retrieve->form->{$key}, $value);
+
+        $this->assertObjectHasAttribute(Auth\AuthBootstrap::IDENTITY, $retrieve->form);
+        $this->assertSame($retrieve->form->{Auth\AuthBootstrap::IDENTITY}, $identity);
+
+        $this->assertObjectHasAttribute(Auth\AuthBootstrap::PAYLOAD, $retrieve->form);
+        $this->assertSame($retrieve->form->{Auth\AuthBootstrap::PAYLOAD}, $delete->getPayload()[Auth\AuthBootstrap::PAYLOAD]);
+
+        $this->assertObjectHasAttribute(Auth\AuthBootstrap::TIMESTAMP, $retrieve->form);
+        $this->assertSame($retrieve->form->{Auth\AuthBootstrap::TIMESTAMP}, strval($delete->getPayload()[Auth\AuthBootstrap::TIMESTAMP]));
 
     }
 }
