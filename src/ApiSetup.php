@@ -109,7 +109,7 @@ trait ApiSetup
     {
         if ($this->getDebug()) {
             fclose($this->getLogHandle());
-            $this->setDebugData(nl2br(file_get_contents($this->getLogFile())));
+            $this->setDebugData(file_get_contents($this->getLogFile()));
             fopen($this->getLogFile(), 'w+');
         }
     }

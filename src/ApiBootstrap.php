@@ -51,8 +51,11 @@ class ApiBootstrap
     public function responseContent($response, $curlHandler)
     {
         $getContent = @json_decode($response);
-        if (!$getContent && is_string($response)) {
+        if ((!$getContent && is_string($response)) || is_null($getContent)) {
             // if debugging, set debug output to the debug data field
+            if($this->getDebug()) {
+                $response .= " \n Debug: \n" . $this->getDebugData();
+            }
             return $response;
         }
         if ($this->getDebug()) {

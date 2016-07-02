@@ -61,7 +61,7 @@ class ApiBootstrapTest extends \PHPUnit_Framework_TestCase
         $logFile = self::tempDir() . '/' . __FUNCTION__ . '_log.txt';
         $string = $faker->sentence();
         file_put_contents($filePath, $string);
-        $boot = new ApiBootstrap('file://' . $filePath, [], true);
+        $boot = new ApiBootstrap('file://' . $filePath, [], false);
         $boot->setLogFile($logFile);
         $handler = $boot->curlBootstrap();
 
@@ -70,6 +70,31 @@ class ApiBootstrapTest extends \PHPUnit_Framework_TestCase
         $responseContent = $boot->responseContent($response, $handler);
 
         $this->assertSame($responseContent, $string);
+
+    }
+
+    /**
+     * Check that the responseContent method returns a string and debug data if invalid json string is passed
+     * @test
+     */
+    public function responseContent_returns_a_string_with_debug_if_invalid_json_response_is_passed_and_debug_is_true()
+    {
+
+        $faker = \Faker\Factory::create();
+        $filePath = self::tempDir() . '/' . __FUNCTION__ . '.txt';
+        $logFile = self::tempDir() . '/' . __FUNCTION__ . '_log.txt';
+        $string = $faker->sentence();
+        file_put_contents($filePath, $string);
+        $boot = new ApiBootstrap('file://' . $filePath, [], true);
+        $boot->setLogFile($logFile);
+        $handler = $boot->curlBootstrap();
+
+        $response = $boot->curlResponse($handler);
+
+        $responseContent = $boot->responseContent($response, $handler);
+
+        $this->assertContains($string, $responseContent);
+        $this->assertContains('Debug:', $responseContent);
 
     }
 
@@ -87,7 +112,7 @@ class ApiBootstrapTest extends \PHPUnit_Framework_TestCase
         $faker = \Faker\Factory::create();
         $filePath = self::tempDir() . '/' . __FUNCTION__ . '.txt';
         $logFile = self::tempDir() . '/' . __FUNCTION__ . '_log.txt';
-        $key  =$faker->word;
+        $key = $faker->word;
         $val = $faker->sentence();
         $data = [[$key => $val]];
         file_put_contents($filePath, json_encode($data));
