@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/paulbunyannet/api.svg?branch=master)](https://travis-ci.org/paulbunyannet/api)
 [![Latest Version](https://img.shields.io/packagist/v/paulbunyannet/api.svg?style=flat-square)](https://packagist.org/packages/paulbunyannet/api)
-
+[![Coverage Status](https://coveralls.io/repos/github/paulbunyannet/api/badge.svg)](https://coveralls.io/github/paulbunyannet/api)
 **paulbunyannet/api** Shortcut for making http calls to json endpoint
 
 
