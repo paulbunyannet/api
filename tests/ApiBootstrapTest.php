@@ -12,12 +12,13 @@ class ApiBootstrapTest extends \PHPUnit_Framework_TestCase
 
     protected static $tempDir = 'tmp';
 
-    /**
-     * @return string
-     */
-    public static function tempDir()
+    public static function tearDownAfterClass()
     {
-        return __DIR__ . '/' . self::$tempDir;
+        parent::tearDownAfterClass();
+        if (file_exists(self::tempDir())) {
+            exec('rm -rf ' . self::tempDir());
+        }
+
     }
 
     public function setUp()
@@ -40,13 +41,12 @@ class ApiBootstrapTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public static function tearDownAfterClass()
+    /**
+     * @return string
+     */
+    public static function tempDir()
     {
-        parent::tearDownAfterClass();
-        if (file_exists(self::tempDir())) {
-            exec('rm -rf ' . self::tempDir());
-        }
-
+        return __DIR__ . '/' . self::$tempDir;
     }
 
     /**
@@ -82,7 +82,7 @@ class ApiBootstrapTest extends \PHPUnit_Framework_TestCase
      * @test
      * @covers \Pbc\Api\ApiBootstrap::responseContent
      */
-    public function responseContent_returns_with_response_if_content_is_a_numerical_array()
+    public function responseContent_returns_with_response_if_content_is_a_numerical_array_and_debug_is_true()
     {
         $faker = \Faker\Factory::create();
         $filePath = self::tempDir() . '/' . __FUNCTION__ . '.txt';
@@ -110,13 +110,75 @@ class ApiBootstrapTest extends \PHPUnit_Framework_TestCase
     /**
      * Test that when a json response with a numerical
      * array, the first object will have a key
+     * debug with curl error log if there
+     * is one.
+     *
+     * @test
+     * @covers \Pbc\Api\ApiBootstrap::responseContent
+     */
+    public function responseContent_returns_with_debug_data_if_content_is_a_numerical_array_and_debug_is_true()
+    {
+        $faker = \Faker\Factory::create();
+        $filePath = self::tempDir() . '/' . __FUNCTION__ . '.txt';
+        $logFile = self::tempDir() . '/' . __FUNCTION__ . '_log.txt';
+        $key  =$faker->word;
+        $val = $faker->sentence();
+        $data = [[$key => $val]];
+        file_put_contents($filePath, json_encode($data));
+        $boot = new ApiBootstrap('file://' . $filePath, [], true);
+        $boot->setLogFile($logFile);
+        $handler = $boot->curlBootstrap();
+        $response = $boot->curlResponse($handler);
+
+        $responseContent = $boot->responseContent($response, $handler);
+
+        $this->assertTrue(is_array($responseContent));
+        $this->assertTrue(isset($responseContent[0]));
+        $this->assertArrayHasKey(0, $responseContent);
+
+        $this->assertObjectHasAttribute('debug', $responseContent[0]);
+        $this->assertSame($responseContent[0]->debug, $boot->getDebugData());
+
+    }
+    /**
+     * Test that when a json response object the
+     * object will have a key debug with
+     * curl error log if there is one.
+     *
+     * @test
+     * @covers \Pbc\Api\ApiBootstrap::responseContent
+     */
+    public function responseContent_returns_with_debug_data_if_content_is_a_object_and_debug_is_true()
+    {
+        $faker = \Faker\Factory::create();
+        $filePath = self::tempDir() . '/' . __FUNCTION__ . '.txt';
+        $logFile = self::tempDir() . '/' . __FUNCTION__ . '_log.txt';
+        $key  =$faker->word;
+        $val = $faker->sentence();
+        $data = [$key => $val];
+        file_put_contents($filePath, json_encode($data));
+        $boot = new ApiBootstrap('file://' . $filePath, [], true);
+        $boot->setLogFile($logFile);
+        $handler = $boot->curlBootstrap();
+        $response = $boot->curlResponse($handler);
+
+        $responseContent = $boot->responseContent($response, $handler);
+
+        $this->assertObjectHasAttribute('debug', $responseContent);
+        $this->assertSame($responseContent->debug, $boot->getDebugData());
+
+    }
+
+    /**
+     * Test that when a json response with a numerical
+     * array, the first object will have a key
      * curl with the output of curl_getinfo
      * will be returned.
      *
      * @test
      * @covers \Pbc\Api\ApiBootstrap::responseContent
      */
-    public function responseContent_returns_with_curl_info_if_content_is_a_numerical_array()
+    public function responseContent_returns_with_curl_info_if_content_is_a_numerical_array_and_debug_is_true()
     {
         $faker = \Faker\Factory::create();
         $filePath = self::tempDir() . '/' . __FUNCTION__ . '.txt';
@@ -151,7 +213,7 @@ class ApiBootstrapTest extends \PHPUnit_Framework_TestCase
      * @test
      * @covers \Pbc\Api\ApiBootstrap::responseContent
      */
-    public function responseContent_returns_with_curl_info_if_content_is_object()
+    public function responseContent_returns_with_curl_info_if_content_is_object_and_debug_is_true()
     {
         $faker = \Faker\Factory::create();
         $filePath = self::tempDir() . '/' . __FUNCTION__ . '.txt';
@@ -186,7 +248,7 @@ class ApiBootstrapTest extends \PHPUnit_Framework_TestCase
      * @test
      * @covers \Pbc\Api\ApiBootstrap::responseContent
      */
-    public function responseContent_returns_an_object_with_the_property_response_if_response_is_a_object()
+    public function responseContent_returns_an_object_with_the_property_response_if_response_is_a_object_and_debug_is_true()
     {
         $faker = \Faker\Factory::create();
         $filePath = self::tempDir() . '/' . __FUNCTION__ . '.txt';

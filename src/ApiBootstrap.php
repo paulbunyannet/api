@@ -59,9 +59,11 @@ class ApiBootstrap
             if (is_array($getContent) && isset($getContent[0])) {
                 $getContent[0]->response = $response;
                 $getContent[0]->curl = curl_getinfo($curlHandler);
+                $getContent[0]->debug = $this->getDebugData();
             } elseif (is_object($getContent)) {
                 $getContent->response = $response;
                 $getContent->curl = curl_getinfo($curlHandler);
+                $getContent->debug = $this->getDebugData();
             }
         }
         return $getContent;
