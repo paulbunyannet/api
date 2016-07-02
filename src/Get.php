@@ -9,6 +9,7 @@ class Get extends ApiBootstrap implements ApiInterface
 {
     /**
      * @param string $apiPath
+     * @param array $headers
      * @param bool|false $debug
      */
     public function __construct($apiPath = '', array $headers = [], $debug = false)
@@ -25,9 +26,8 @@ class Get extends ApiBootstrap implements ApiInterface
         $curlHandler = $this->curlBootstrap();
         curl_setopt($curlHandler, CURLOPT_URL, $this->prepHttpPath($params));
         curl_setopt($curlHandler, CURLOPT_HTTPGET, true);
-        $response = curl_exec($curlHandler);
-        $getContent = $this->responseContent($response, $curlHandler);
+        $response = $this->curlResponse($curlHandler);
+        return $this->responseContent($response, $curlHandler);
 
-        return $getContent;
     }
 }

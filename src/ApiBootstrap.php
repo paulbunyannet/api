@@ -11,7 +11,6 @@
 
 namespace Pbc\Api;
 
-
 /**
  * Class ApiBootstrap
  * @package Pbc\Api
@@ -24,7 +23,7 @@ use Pbc\Api\Auth\AuthBootstrap;
  */
 class ApiBootstrap
 {
-
+    use ApiSetup;
     /**
      * Curl ssl version
      */
@@ -33,115 +32,15 @@ class ApiBootstrap
      * timeout for request
      */
     const TIMEOUT = 120;
-    /**
-     * @var null path to send request to
-     */
-    protected $apiPath = null;
-    /**
-     * @var bool Debug flag
-     */
-    protected $debug = false;
 
-    /**
-     * @var string
-     */
-    protected $logFile = 'apiGetErrorLog.txt';
-
-    /** @var array */
-    protected $payload = [];
-
-    /**
-     * @var array
-     */
-    protected $headers = [];
-
-    /**
-     * @param string $apiPath
-     * @param bool|false $debug
-     */
     public function __construct($apiPath = '', array $headers = [], $debug = false)
     {
         $this->setApiPath($apiPath);
         $this->setDebug($debug);
-        $this->setLogFile('api' . get_class($this) . 'ErrorLog.txt');
+        $this->setLogFile('api' . str_replace('\\','-',get_class($this)) . 'ErrorLog.txt');
         $this->setHeaders($headers);
 
         return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getLogFile()
-    {
-        return $this->logFile;
-    }
-
-
-    /**
-     * @param array $payload payload auth to be sent with request
-     */
-    public function setPayload(array $payload = [])
-    {
-        $this->payload = $payload;
-    }
-
-    /**
-     * @return array
-     */
-    public function getPayload()
-    {
-        return $this->payload;
-    }
-
-    /**
-     * @return array
-     */
-    public function getHeaders()
-    {
-        return $this->headers;
-    }
-
-    /**
-     * @param array $headers
-     */
-    public function setHeaders(array $headers = [])
-    {
-        $this->headers = array_merge($this->getHeaders(), $headers);
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDebug()
-    {
-        return $this->debug;
-    }
-
-    /**
-     * @param $debug
-     * @return Get
-     */
-    protected function setDebug($debug)
-    {
-        $this->debug = (bool)$debug;
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getApiPath()
-    {
-        return $this->apiPath;
-    }
-
-    /**
-     * @param $path
-     */
-    public function setApiPath($path)
-    {
-        $this->apiPath = $path;
     }
 
     /**
@@ -149,18 +48,17 @@ class ApiBootstrap
      * @param $curlHandler
      * @return mixed|\stdClass
      */
-    protected function responseContent($response = null, $curlHandler)
+    public function responseContent($response, $curlHandler)
     {
         $getContent = @json_decode($response);
         if (!$getContent && is_string($response)) {
+            // if debugging, set debug output to the debug data field
             return $response;
         }
-        if ($this->getDebug() === true) {
+        if ($this->getDebug()) {
             if (is_array($getContent) && isset($getContent[0])) {
                 $getContent[0]->response = $response;
                 $getContent[0]->curl = curl_getinfo($curlHandler);
-            } elseif (is_string($getContent)) {
-                $getContent .= "Response: " . $response . "\n\n" . "Curl: " . curl_getinfo($curlHandler);
             } elseif (is_object($getContent)) {
                 $getContent->response = $response;
                 $getContent->curl = curl_getinfo($curlHandler);
@@ -190,6 +88,7 @@ class ApiBootstrap
         return parse_url($url, PHP_URL_SCHEME) === null ?
             $scheme . $url : $url;
     }
+
 
     /**
      * @param $params
@@ -255,26 +154,41 @@ class ApiBootstrap
      * Bootstrap curl request
      * @return resource
      */
-    protected function curlBootstrap()
+    public function curlBootstrap()
     {
 
-        $curlHandler = curl_init();
+        $curlHandler = curl_init($this->getApiPath());
         curl_setopt($curlHandler, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curlHandler, CURLOPT_HEADER, false);
         curl_setopt($curlHandler, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($curlHandler, CURLOPT_TIMEOUT, self::TIMEOUT);
         curl_setopt($curlHandler, CURLOPT_USERAGENT, $this->userAgent());
         curl_setopt($curlHandler, CURLOPT_SSLVERSION, ApiBootstrap::SSL_VERSION);
-        $errorFile = fopen(dirname(__FILE__) . '/' . $this->getLogFile(), 'a+');
-        curl_setopt($curlHandler, CURLOPT_STDERR, $errorFile);
         curl_setopt($curlHandler, CURLOPT_HTTPHEADER, $this->headers());
         curl_setopt($curlHandler, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($curlHandler, CURLOPT_SSL_VERIFYPEER, 0);
-        if ($this->getDebug() === true) {
-            curl_setopt($curlHandler, CURLOPT_VERBOSE, true);
+
+        // if debug is true then set curl to verbose and set the error handler
+        curl_setopt($curlHandler, CURLOPT_VERBOSE, $this->getDebug());
+        if (get_resource_type($this->getLogHandle()) == 'file'
+            || get_resource_type($this->getLogHandle()) == 'stream'
+        ) {
+            curl_setopt($curlHandler, CURLOPT_STDERR, $this->getLogHandle());
+
         }
 
         return $curlHandler;
+    }
+
+    /**
+     * @param $handler
+     * @return mixed
+     */
+    public function curlResponse($handler)
+    {
+        $response = curl_exec($handler);
+        $this->closeDebugData();
+        return $response;
     }
 
     /**
@@ -293,7 +207,12 @@ class ApiBootstrap
     protected function headers()
     {
 
-        if (count($this->getHeaders()) > 0 && array_keys($this->getHeaders()) !== range(0, count($this->getHeaders()) - 1)) {
+        if (count($this->getHeaders()) > 0
+            && array_keys($this->getHeaders()) !== range(
+                0,
+                count($this->getHeaders()) - 1
+            )
+        ) {
             $holder = [];
             foreach ($this->getHeaders() as $key => $value) {
                 array_push($holder, $key . ': ' . $value);
@@ -303,14 +222,4 @@ class ApiBootstrap
             return $this->getHeaders();
         }
     }
-
-    /**
-     * @param string $string
-     */
-    private function setLogFile($string = 'errorLog.txt')
-    {
-        $this->logFile = $string;
-    }
-
-
 }

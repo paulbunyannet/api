@@ -101,4 +101,17 @@ class ApiAuthTest extends \PHPUnit_Framework_TestCase
         $receiver = new Auth\Receive($hash, $this->privateKey);
         $this->assertFalse($receiver->verifyHash(array_merge($this->list, ['another-thing' => '12345'])));
     }
+
+    /**
+     * @test
+     * @covers \Pbc\Api\Auth\Receive::getRemoteHash
+     */
+    public function getRemoteHash_returns_the_value_from_remoteHash()
+    {
+        $faker  =\Faker\Factory::create();
+        $hash = implode('-',$faker->words(3));
+        $receiver = new Auth\Receive($hash, $this->privateKey);
+        
+        $this->assertSame($hash, $receiver->getRemoteHash());
+    }
 }

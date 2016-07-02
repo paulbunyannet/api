@@ -31,7 +31,7 @@ class Receive extends AuthBootstrap implements AuthInterface
     public function __construct($remoteHash, $privateKey)
     {
         parent::__construct('', $privateKey);
-        $this->remoteHash = $remoteHash;
+        $this->setRemoteHash($remoteHash);
 
     }
 
@@ -43,12 +43,12 @@ class Receive extends AuthBootstrap implements AuthInterface
     {
         $timestamp = array_key_exists(AuthBootstrap::TIMESTAMP, $list) ? $list[AuthBootstrap::TIMESTAMP] : gmdate('U');
         $timeStampRange = $this->getTimestampRange($timestamp);
-        foreach($timeStampRange as $stamp) {
+        foreach ($timeStampRange as $stamp) {
             $newList = [AuthBootstrap::PRIVATEKEY => $this->getPrivateKey()];
             $newList = array_merge($list, $newList);
             $newList[AuthBootstrap::TIMESTAMP] = $stamp;
             $this->generateHash($newList);
-            if($newList[AuthBootstrap::PAYLOAD] === $this->getRemoteHash()) {
+            if ($newList[AuthBootstrap::PAYLOAD] === $this->getRemoteHash()) {
                 return true;
             }
         }
@@ -83,7 +83,7 @@ class Receive extends AuthBootstrap implements AuthInterface
     /**
      * @return mixed
      */
-    protected function getRemoteHash()
+    public function getRemoteHash()
     {
         return $this->remoteHash;
     }
@@ -91,9 +91,8 @@ class Receive extends AuthBootstrap implements AuthInterface
     /**
      * @param mixed $remoteHash
      */
-    protected function setRemoteHash($remoteHash)
+    public function setRemoteHash($remoteHash)
     {
         $this->remoteHash = $remoteHash;
     }
-
 }

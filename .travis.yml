@@ -14,10 +14,15 @@ notifications:
   slack:
     secure: H+hXVOBMybZGHCCAWDzoxyrkdah8JFPFqECtJgmmtWCauve6FdZV0oW/Duo1xDadPHNg+pDlxH8tXvj9WYfOCU6322gBj5NDt5zDZrfZdXgqUkJTwWWwnCj7Wral5JI5NrjTgueT773cqbsdKatGFHPYFNcUgvLVeMaIVqPJhwydj9xg2sJkan1DKYMl0ftgfzUFj4LxAM32+1nzy0OMDNCoeC5VKP6XEHFBihYH9DfvhXbq7fz6w2ymr8jAhmLrT7MSvvtCToHyUT0sfj53RbG3kZzN9WR7+BCrG2vW9fKug+hi5jGyAgPvY0RFnTFRmb+71wppQiXi6R2Hgjguq7y2y3Np8KYaTRw66kZUaw7YbFqhmA7cT6I87f3iPp/rCayB+7vuE5gH2SLQzvGTRYUqkYQbpCtfB/sn/q1kywA2lIv9vlDde01mbicOO1HVM8pVHh+XVkykazRPVVmr02VCn3tluKQ8G2uGeeaeJxj28B8BIamtxnUNRLxqVbvXwvbtewtMPnqNCw9E/X4HH0iza2sqElYp7xYer/JCR2zXm6yLfsWlZ33yBYVYitqI2EpTaVE86T0zBbGJUPUQCLUY7/hkkbzT0aHIgFWqUyxrvVVH8x2YJxNGW5LrBW8LpmCFzFHCGIdWFIp8bWbszEWPXkeI/lfgKCRUOkikMHs=
 before_install:
-- composer self-update
-install: composer install --prefer-source --no-interaction --dev
-script: composer test
+  - composer self-update
+install:
+  - composer install --prefer-source --no-interaction --dev
+script:
+  - mkdir -p build/logs
+  - php vendor/bin/phpunit -c phpunit.xml
 cache:
   directories:
-  - vendor
-  - $HOME/.composer/cache
+    - vendor
+    - $HOME/.composer/cache
+after_success:
+  - travis_retry php vendor/bin/coveralls

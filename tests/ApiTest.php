@@ -6,6 +6,7 @@ namespace Pbc\Api;
  * Tests for Api class
  */
 require_once dirname(__DIR__) . '/vendor/autoload.php';
+use Pbc\Api\ApiBootstrap;
 use Pbc\Api\Auth;
 /**
  * Class ApiTest
