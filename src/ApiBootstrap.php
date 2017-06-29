@@ -35,9 +35,13 @@ class ApiBootstrap
 
     public function __construct($apiPath = '', array $headers = [], $debug = false)
     {
+        if (!function_exists('curl_init')) {
+            throw new \Exception('The function curl_init() is required');
+        }
+
         $this->setApiPath($apiPath);
         $this->setDebug($debug);
-        $this->setLogFile('api' . str_replace('\\','-',get_class($this)) . 'ErrorLog.txt');
+        $this->setLogFile('api' . str_replace('\\', '-', get_class($this)) . 'ErrorLog.txt');
         $this->setHeaders($headers);
 
         return $this;
@@ -161,7 +165,6 @@ class ApiBootstrap
      */
     public function curlBootstrap()
     {
-
         $curlHandler = curl_init($this->getApiPath());
         curl_setopt($curlHandler, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curlHandler, CURLOPT_HEADER, false);
